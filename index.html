@@ -136,10 +136,8 @@
             background-color: #19262b;
             margin-left: 10px;
             display: flex;
-            align-items: center;
+            align-items: right;
             justify-content: center;
-
-
         }
 
         .toggle-switch label {
@@ -182,7 +180,8 @@
     </style>
 </head>
 <body>
-    
+    <button class="button toggle-button" id="toggleButton" onclick="toggleSidebar()">On/Off</button>
+
     <div class="sidebar" id="sidebar">
         <h3></h3>
         <img src="https://d1yei2z3i6k35z.cloudfront.net/3119789/666e1df34d7ed_BannerFNWAssessoriaDigitalprovisorio.png" alt="Descrição da Imagem" style="width: 80%; height: auto; display: block; margin: 0 auto;">
@@ -193,11 +192,7 @@
         <div id="course-menu"></div>
     </div>
 
-  <div class="content" id="content">
-
-<button class="button toggle-button" id="toggleButton" onclick="toggleSidebar()">On/Off</button>
-
-
+    <div class="content" id="content">
         <h3>Carregar Arquivo</h3>
         <input type="file" id="fileInput" accept=".json" multiple>
         <button class="button" onclick="loadFiles()">Carregar Arquivos</button>
@@ -221,7 +216,7 @@
     </div>
     <br><br><br><br>
     <div>
-      <!--  <h3>Adicionar Categoria</h3>
+        <h3>Adicionar Categoria</h3>
         <input type="text" id="newCategory" placeholder="Nome da nova categoria">
         <button class="button" onclick="addCategory()">Adicionar</button>
     </div>
@@ -243,20 +238,10 @@
     <div>
         <h3>Carregar Estado</h3>
         <input type="file" id="fileInputState" accept=".json" onchange="loadCourses(event)">
-        <button class="button" onclick="document.getElementById('fileInputState').click()">Carregar</button> -->
+        <button class="button" onclick="document.getElementById('fileInputState').click()">Carregar</button>
     </div>
 
     <script>
-
-
-function toggleSidebar() {
-    const sidebar = document.querySelector('.sidebar');
-    const content = document.querySelector('.content');
-
-    sidebar.classList.toggle('expanded');
-    content.classList.toggle('sidebar-expanded');
-}
-
         const courses = {};
         const originalCourses = {};
         const fileMap = new Map(); // Para armazenar o conteúdo dos arquivos por nome
