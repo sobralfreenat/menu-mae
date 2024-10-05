@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Lateral de Cursos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            width: 300px;
+            height: 100%;
+            background-color: #19262b;
+            color: white;
+            overflow-y: auto;
+            transition: height 0.3s ease;
+            bottom: 0;
+            display: none;
+        }
+
+        .sidebar.expanded {
+            display: block;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            color: #ecf0f1;
+            margin: 20px 0;
+        }
+
+        .search-bar {
+            padding: 10px;
+            background-color: #34495e;
+        }
+
+        .search-bar input {
+            width: 100%;
+            color: gray;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .category {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #34495e;
+            margin-bottom: 5px;
+        }
+
+        .category:hover {
+            background-color: #3b5998;
+        }
+
+        .course-list {
+            display: none;
+            padding-left: 20px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .course {
+            padding: 8px;
+            cursor: pointer;
+            background-color: #2c3e50;
+        }
+
+        .course:hover {
+            background-color: #3b5998;
+        }
+
+        .content {
+            margin-left: 320px;
+            padding: 20px;
+            transition: margin-left 0.3s;
+        }
+
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 300px;
+            width: 70%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        #popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            width: 90%;
+            max-width: 300px;
+            padding: 20px;
+            z-index: 1001;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .close-popup {
+            text-align: right;
+            cursor: pointer;
+            color: red;
+            font-weight: bold;
+        }
+
+        .button {
+    background-color: #385764 !important; /* Azul claro */
+    color: white !important; /* Texto branco */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 150px;
+            margin-bottom: 10px;
+            text-align: center;
+            display: block;
+        }
+
+        .button:hover {
+            background-color: #3b5998; /* Cor ao passar o mouse */
+        }
+
+        .toggle-switch {
+            margin-top: 20px;
+            background-color: #19262b;
+            margin-left: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+
+        }
+
+        .toggle-switch label {
+            margin-right: 10px;
+            font-size: 16px;
+            color: blue;
+        }
+
+        .toggle-switch input[type="checkbox"] {
+            appearance: none;
+            width: 40px;
+            height: 20px;
+            background-color: #ccc;
+            border-radius: 20px;
+            position: relative;
+            outline: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-switch input[type="checkbox"]:checked {
+            background-color: #007bff;
+        }
+
+        .toggle-switch input[type="checkbox"]::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background-color: #fff;
+            top: 1px;
+            left: 1px;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch input[type="checkbox"]:checked::before {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="sidebar" id="sidebar">
+        <h3></h3>
+        <img src="https://d1yei2z3i6k35z.cloudfront.net/3119789/666e1df34d7ed_BannerFNWAssessoriaDigitalprovisorio.png" alt="Descrição da Imagem" style="width: 80%; height: auto; display: block; margin: 0 auto;">
+        
+        <div class="search-bar">
+            <input type="text" id="search" placeholder="Buscar assunto..." oninput="filterCourses()">
+        </div>
+        <div id="course-menu"></div>
+    </div>
+
+  <div class="content" id="content">
+
+<button class="button toggle-button" id="toggleButton" onclick="toggleSidebar()">On/Off</button>
+
+
+        <h3>Carregar Arquivo</h3>
+        <input type="file" id="fileInput" accept=".json" multiple>
+        <button class="button" onclick="loadFiles()">Carregar Arquivos</button>
+        
+        <h3>Selecionar Arquivo</h3>
+        <select id="fileDropdown">
+            <option value="">Selecione um arquivo</option>
+        </select>
+        <button class="button" onclick="loadSelectedFile()">Carregar Arquivo</button>
+        
+        <h3>Limpar Menu</h3>
+        <button class="button" onclick="clearMenu()">Limpar Menu</button>
+    </div>
+
+    <div id="overlay" onclick="hidePopup()"></div>
+    <div id="popup">
+        <div class="close-popup" onclick="hidePopup()">X</div>
+        <h2 id="popup-title"></h2>
+        <p id="popup-description"></p>
+        <button class="button" id="popup-button">Abrir</button>
+    </div>
+    <br><br><br><br>
+    <div>
+      <!--  <h3>Adicionar Categoria</h3>
+        <input type="text" id="newCategory" placeholder="Nome da nova categoria">
+        <button class="button" onclick="addCategory()">Adicionar</button>
+    </div>
+    <br>
+    <div>
+        <h3>Adicionar Tópico</h3>
+        <input type="text" id="newCourse" placeholder="Nome do novo Tópico">
+        <input type="text" id="courseCategory" placeholder="Categoria do Tópico">
+        <input type="text" id="courseUrl" placeholder="URL do Acesso"> 
+        <button class="button" onclick="addCourse()">Adicionar</button>
+    </div>
+    <br>
+    <div>
+        <h3>Salvar Estado</h3>
+        <input type="text" id="filename-input" placeholder="Digite o nome do arquivo">
+        <button class="button" onclick="saveCoursesToFile()">Salvar</button>
+    </div>
+    <br>
+    <div>
+        <h3>Carregar Estado</h3>
+        <input type="file" id="fileInputState" accept=".json" onchange="loadCourses(event)">
+        <button class="button" onclick="document.getElementById('fileInputState').click()">Carregar</button> -->
+    </div>
+
+    <script>
+
+
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const content = document.querySelector('.content');
+
+    sidebar.classList.toggle('expanded');
+    content.classList.toggle('sidebar-expanded');
+}
+
+        const courses = {};
+        const originalCourses = {};
+        const fileMap = new Map(); // Para armazenar o conteúdo dos arquivos por nome
+
+        const janelas = {}; // Armazena as janelas abertas
+
+        function initializeCourses() {
+            Object.assign(courses, originalCourses);
+            updateCourseList();
+        }
+
+        function toggleCategory(categoryId) {
+            const categoryElement = document.getElementById(categoryId);
+            categoryElement.style.display = categoryElement.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function abrirOuFocarJanela(url, title) {
+            if (janelas[title] && !janelas[title].closed) {
+                janelas[title].focus();
+            } else {
+                janelas[title] = window.open(url, title, 'width=400,height=600,left=2300,top=1000');
+            }
+        }
+
+        function showPopup(courseKey) {
+            const course = courses[courseKey];
+            if (course) {
+                document.getElementById('popup-title').innerText = course.title;
+                document.getElementById('popup-description').innerText = course.description;
+                document.getElementById('popup-button').onclick = function() {
+                    abrirOuFocarJanela(course.url, course.title);
+                };
+
+                document.getElementById('popup').style.display = 'block';
+                document.getElementById('overlay').style.display = 'block';
+            }
+        }
+
+        function hidePopup() {
+            document.getElementById('popup').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        function filterCourses() {
+            const searchInput = document.getElementById('search').value.toLowerCase();
+            const categories = document.querySelectorAll('.course-list');
+            categories.forEach(category => {
+                const courses = category.querySelectorAll('.course');
+                let categoryHasVisibleCourses = false;
+                courses.forEach(course => {
+                    if (course.innerText.toLowerCase().includes(searchInput)) {
+                        course.style.display = 'block';
+                        categoryHasVisibleCourses = true;
+                    } else {
+                        course.style.display = 'none';
+                    }
+                });
+                category.style.display = categoryHasVisibleCourses ? 'block' : 'none';
+            });
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('expanded');
+        }
+
+        function addCategory() {
+            const categoryName = document.getElementById('newCategory').value;
+            if (categoryName) {
+                const newCourseList = document.createElement('div');
+                newCourseList.className = 'course-list';
+                newCourseList.id = categoryName.toLowerCase().replace(/\s+/g, '-');
+
+                const newCategoryDiv = document.createElement('div');
+                newCategoryDiv.className = 'category';
+                newCategoryDiv.innerText = categoryName;
+                newCategoryDiv.onclick = function() { toggleCategory(newCourseList.id); };
+
+                document.getElementById('course-menu').appendChild(newCategoryDiv);
+                document.getElementById('course-menu').appendChild(newCourseList);
+                document.getElementById('newCategory').value = '';
+            }
+        }
+
+        function addCourse() {
+            const courseName = document.getElementById('newCourse').value;
+            const categoryName = document.getElementById('courseCategory').value;
+            const courseUrl = document.getElementById('courseUrl').value;
+            if (courseName && categoryName && courseUrl) {
+                const courseList = document.getElementById(categoryName.toLowerCase().replace(/\s+/g, '-'));
+                if (courseList) {
+                    const courseKey = courseName.toLowerCase().replace(/\s+/g, '-');
+
+                    courses[courseKey] = {
+                        title: courseName,
+                        description: `Descrição do curso ${courseName}`,
+                        url: courseUrl,
+                        category: categoryName
+                    };
+
+                    const newCourseDiv = document.createElement('div');
+                    newCourseDiv.className = 'course';
+                    newCourseDiv.innerText = courseName;
+                    newCourseDiv.onclick = function() { showPopup(courseKey); };
+                    courseList.appendChild(newCourseDiv);
+                    document.getElementById('newCourse').value = '';
+                    document.getElementById('courseCategory').value = '';
+                    document.getElementById('courseUrl').value = '';
+                } else {
+                    alert('Categoria não encontrada!');
+                }
+            } else {
+                alert('Por favor, preencha todos os campos!');
+            }
+        }
+
+        function saveCoursesToFile() {
+            const filenameInput = document.getElementById('filename-input');
+            const filename = filenameInput.value || 'cursos';
+            const json = JSON.stringify(courses, null, 2);
+
+            const blob = new Blob([json], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${filename}.json`;
+            link.click();
+        }
+
+        function loadFiles() {
+            const input = document.getElementById('fileInput');
+            const files = input.files;
+            const dropdown = document.getElementById('fileDropdown');
+
+            for (const file of files) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const content = JSON.parse(e.target.result);
+                        fileMap.set(file.name, content);
+
+                        const option = document.createElement('option');
+                        option.value = file.name;
+                        option.text = file.name;
+                        dropdown.add(option);
+                    } catch (error) {
+                        console.error("Erro ao carregar o arquivo JSON:", error);
+                        alert('Erro ao carregar o arquivo JSON: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function loadSelectedFile() {
+            const selectedFile = document.getElementById('fileDropdown').value;
+            if (selectedFile && fileMap.has(selectedFile)) {
+                const data = fileMap.get(selectedFile);
+                const action = confirm("Deseja substituir os cursos existentes? Clique em 'OK' para substituir ou 'Cancelar' para adicionar.");
+                if (action) {
+                    Object.keys(courses).forEach(key => delete courses[key]); // Limpa os cursos atuais
+                }
+                for (const key in data) {
+                    courses[key] = data[key];
+                }
+                updateCourseList();
+                alert('Arquivo carregado com sucesso!');
+            } else {
+                alert('Por favor, selecione um arquivo da lista.');
+            }
+        }
+
+        function clearMenu() {
+            Object.keys(courses).forEach(key => delete courses[key]); // Limpa os cursos atuais
+            updateCourseList();
+            alert('Menu limpo com sucesso!');
+        }
+
+        function updateCourseList() {
+            const courseMenu = document.getElementById('course-menu');
+            courseMenu.innerHTML = '';
+
+            const categories = {};
+            for (const key in courses) {
+                const course = courses[key];
+                const categoryName = course.category || 'Outras';
+
+                if (!categories[categoryName]) {
+                    categories[categoryName] = [];
+                }
+                categories[categoryName].push(course);
+            }
+
+            for (const category in categories) {
+                const newCategoryDiv = document.createElement('div');
+                newCategoryDiv.className = 'category';
+                newCategoryDiv.innerText = category;
+                const newCourseList = document.createElement('div');
+                newCourseList.className = 'course-list';
+                newCourseList.id = category.toLowerCase().replace(/\s+/g, '-');
+
+                categories[category].forEach(course => {
+                    const newCourseDiv = document.createElement('div');
+                    const courseKey = Object.keys(courses).find(key => courses[key].title === course.title);
+                    newCourseDiv.className = 'course';
+                    newCourseDiv.innerText = course.title;
+                    newCourseDiv.onclick = function() { showPopup(courseKey); };
+                    newCourseList.appendChild(newCourseDiv);
+                });
+
+                newCategoryDiv.onclick = function() { toggleCategory(newCourseList.id); };
+                courseMenu.appendChild(newCategoryDiv);
+                courseMenu.appendChild(newCourseList);
+            }
+        }
+
+        initializeCourses();
+    </script>
+</body>
+</html>
